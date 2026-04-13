@@ -183,7 +183,6 @@ def filter_columns(lf: pl.LazyFrame, cfg: DictConfig) -> pl.LazyFrame:
     """
     lf = lf.with_columns(
         pl.col("aaChanges").alias("meta_aa_changes"),
-        pl.col("variantType").alias("meta_variant_type"),
         pl.col("editDistance").alias("meta_edit_distance"),
         pl.col(cfg.barcode_col_name).alias("meta_barcode"),
     )

@@ -131,5 +131,4 @@ Metadata columns added to `filtered_cells.parquet`:
 | `meta_source_file_idx` | Row index of the cell within its source file |
 | `meta_barcode` | Barcode sequence |
 | `meta_aa_changes` | Amino acid changes |
-| `meta_variant_type` | Variant type |
 | `meta_edit_distance` | Edit distance at time of filtering |
