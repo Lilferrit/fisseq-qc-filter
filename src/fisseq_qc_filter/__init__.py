@@ -133,7 +133,7 @@ def read_file(cell_file_path: pathlib.Path) -> pl.LazyFrame:
     Supports CSV and Parquet formats (extensions ``.csv``,
     ``.parquet``, ``.parq``, ``.pq``). Adds two metadata columns:
     ``meta_source_file`` (file path as a string) and
-    ``meta_origin_file_idx`` (row index within the source file).
+    ``meta_source_file_idx`` (row index within the source file).
 
     Args:
         cell_file_path: Path to the cell data file.
@@ -150,7 +150,7 @@ def read_file(cell_file_path: pathlib.Path) -> pl.LazyFrame:
 
     lf = lf.with_columns(
         pl.lit(str(cell_file_path)).alias("meta_source_file"),
-        pl.row_index().alias("meta_origin_file_idx"),
+        pl.row_index().alias("meta_source_file_idx"),
     )
 
     return lf

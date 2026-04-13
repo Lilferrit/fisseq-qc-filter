@@ -128,7 +128,7 @@ Metadata columns added to `filtered_cells.parquet`:
 | Column | Description |
 |---|---|
 | `meta_source_file` | Path to the input file the cell came from |
-| `meta_origin_file_idx` | Row index of the cell within its source file |
+| `meta_source_file_idx` | Row index of the cell within its source file |
 | `meta_barcode` | Barcode sequence |
 | `meta_aa_changes` | Amino acid changes |
 | `meta_variant_type` | Variant type |
