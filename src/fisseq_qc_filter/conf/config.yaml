@@ -1,0 +1,16 @@
+# Hydra config
+hydra:
+  output_subdir: null
+  run:
+    dir: .
+
+# Required arguments (must be supplied on the command line)
+cell_files: ???
+output_dir: ???
+
+# Optional arguments
+output_root: null
+bc_threshold: 10
+variant_bc_threshold: 4
+edit_distance_threshold: 1
+barcode_col_name: upBarcode
