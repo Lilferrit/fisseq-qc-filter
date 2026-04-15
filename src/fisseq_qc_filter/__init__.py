@@ -13,18 +13,17 @@ def get_barcode_counts(lf: pl.LazyFrame, cfg: DictConfig) -> pl.LazyFrame:
 
     Groups by ``meta_barcode``, counts occurrences, and adds a
     ``barcode_ok`` column (non-null when count >= ``cfg.bc_threshold``).
-    Retains the first ``meta_aa_changes`` and ``meta_variant_type``
-    per barcode group.
+    Retains the first ``meta_aa_changes`` per barcode group.
 
     Args:
         lf: Cell-level lazy frame containing ``meta_barcode``,
-            ``meta_aa_changes``, and ``meta_variant_type`` columns
+            ``meta_aa_changes``, and columns
             (as produced by ``filter_columns``).
         cfg: Hydra config supplying ``bc_threshold``.
 
     Returns:
         Lazy frame with one row per barcode, including ``count``,
-        ``meta_aa_changes``, ``meta_variant_type``, and ``barcode_ok``.
+        ``meta_aa_changes``, and ``barcode_ok``.
     """
     barcode_lf = (
         lf.group_by("meta_barcode")
@@ -32,7 +31,6 @@ def get_barcode_counts(lf: pl.LazyFrame, cfg: DictConfig) -> pl.LazyFrame:
             [
                 pl.len().alias("count"),
                 pl.col("meta_aa_changes").first(),
-                pl.col("meta_variant_type").first(),
             ]
         )
         .with_columns(
@@ -144,6 +142,10 @@ def read_file(cell_file_path: pathlib.Path) -> pl.LazyFrame:
     logging.info("Scanning file %s", cell_file_path)
 
     if cell_file_path.suffix == ".csv":
+        logging.warning(
+            "Lazy evaluation is much slower for CSV files."
+            " Consider converting to Parquet for better performance."
+        )
         lf = pl.scan_csv(cell_file_path)
     elif cell_file_path.suffix in [".parquet", ".parq", ".pq"]:
         lf = pl.scan_parquet(cell_file_path)
@@ -205,11 +207,12 @@ def configure_logging(log_path: PathLike) -> None:
     Args:
         log_path: Path to the log file (created if absent).
     """
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s - %(levelname)s - %(message)s",
-        handlers=[logging.FileHandler(log_path), logging.StreamHandler()],
-    )
+    formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+    root = logging.getLogger()
+    root.setLevel(logging.INFO)
+    file_handler = logging.FileHandler(log_path)
+    file_handler.setFormatter(formatter)
+    root.addHandler(file_handler)
 
 
 def log_config(cfg: DictConfig) -> None:
@@ -223,7 +226,9 @@ def log_config(cfg: DictConfig) -> None:
         logging.info(f"  {key}: {value}")
 
 
-@hydra.main(version_base=None, config_path="conf", config_name="config")
+@hydra.main(
+    config_path="pkg://fisseq_qc_filter.conf", config_name="config", version_base=None
+)
 def main(cfg: DictConfig) -> None:
     """CLI entrypoint driven by Hydra configuration.
 
@@ -246,7 +251,7 @@ def main(cfg: DictConfig) -> None:
     output_dir = pathlib.Path(cfg.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     prefix = f"{cfg.output_root}." if cfg.output_root is not None else ""
-    log_path = output_dir / f"{prefix}.fisseq_qc_filter.log"
+    log_path = output_dir / f"{prefix}fisseq_qc_filter.log"
     configure_logging(log_path)
     log_config(cfg)
 

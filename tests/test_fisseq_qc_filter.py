@@ -97,11 +97,7 @@ class TestGetBarcodeCounts:
     def test_counts_are_correct(self, cfg):
         """The count column reflects the true number of cells per barcode."""
         df = _make_filtered_df(["bc1"] * 5 + ["bc2"] * 3, ["V1"] * 8, cfg=cfg)
-        result = (
-            get_barcode_counts(df.lazy(), cfg)
-            .collect()
-            .sort("meta_barcode")
-        )
+        result = get_barcode_counts(df.lazy(), cfg).collect().sort("meta_barcode")
 
         assert result["count"].to_list() == [5, 3]
 
@@ -199,12 +195,9 @@ class TestAddQcQueries:
         result = barcode_counts.collect()
         # barcode_counts is built after the edit distance filter, so barcodes
         # that fail that filter (e.g. bc5 with edit_distance=2) are excluded.
-        n_post_edit_filter = (
-            cell_df
-            .filter(pl.col("meta_edit_distance") <= cfg.edit_distance_threshold)
-            ["meta_barcode"]
-            .n_unique()
-        )
+        n_post_edit_filter = cell_df.filter(
+            pl.col("meta_edit_distance") <= cfg.edit_distance_threshold
+        )["meta_barcode"].n_unique()
         assert result.shape[0] == n_post_edit_filter
 
     def test_variants_per_barcode_frame_shape(self, cell_df, cfg):
@@ -229,7 +222,6 @@ class TestFilterColumns:
 
         for col in (
             "meta_aa_changes",
-            "meta_variant_type",
             "meta_edit_distance",
             "meta_barcode",
         ):
@@ -265,17 +257,17 @@ class TestReadFile:
         result = read_file(csv_file).collect()
 
         assert "meta_source_file" in result.columns
-        assert "meta_origin_file_idx" in result.columns
+        assert "meta_source_file_idx" in result.columns
 
     def test_parquet_adds_metadata_columns(self, tmp_path):
-        """Reading a Parquet file adds meta_source_file and meta_origin_file_idx."""
+        """Reading a Parquet file adds meta_source_file and meta_source_file_idx."""
         pq_file = tmp_path / "cells.parquet"
         pl.DataFrame({"a": [1, 2, 3]}).write_parquet(pq_file)
 
         result = read_file(pq_file).collect()
 
         assert "meta_source_file" in result.columns
-        assert "meta_origin_file_idx" in result.columns
+        assert "meta_source_file_idx" in result.columns
 
     def test_meta_source_file_value(self, tmp_path):
         """meta_source_file contains the path of the file that was read."""
@@ -286,14 +278,14 @@ class TestReadFile:
 
         assert result["meta_source_file"][0] == str(pq_file)
 
-    def test_meta_origin_file_idx_is_sequential(self, tmp_path):
-        """meta_origin_file_idx is a zero-based row index."""
+    def test_meta_source_file_idx_is_sequential(self, tmp_path):
+        """meta_source_file_idx is a zero-based row index."""
         pq_file = tmp_path / "cells.parquet"
         pl.DataFrame({"a": [10, 20, 30]}).write_parquet(pq_file)
 
         result = read_file(pq_file).collect()
 
-        assert result["meta_origin_file_idx"].to_list() == [0, 1, 2]
+        assert result["meta_source_file_idx"].to_list() == [0, 1, 2]
 
 
 # ---------------------------------------------------------------------------

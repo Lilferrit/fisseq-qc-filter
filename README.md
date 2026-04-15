@@ -94,6 +94,13 @@ CellProfiler feature columns are identified by starting with an uppercase
 letter and containing an underscore (e.g. `Cells_AreaShape_Area`). All other
 columns are dropped before output.
 
+### A word on file formats
+
+In general, **using CSV input files will result in a 5x-20x increase in runtime** due to parsing overhead.
+The QC filtering is run using lazy evaluation, meaning that the pipeline scans the input files as it goes rather than reading the whole file into memory at once.
+This significantly decreases the memory footprint.
+However, in the case of CSV files this means that input file has to be constantly parsed as the pipeline runs, leading to a significant runtime penalty.
+
 ## QC pipeline
 
 Filters are applied in this order:
